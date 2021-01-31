@@ -1,5 +1,3 @@
-// @ts-check
-
 import { appId, channel, token } from "./secrets.js";
 
 /**
@@ -94,6 +92,10 @@ async function joinChannel() {
 }
 
 async function publishTracks() {
+  if (!rtc.client) {
+    throw new Error("Client must be ready");
+  }
+
   // Create an audio track from the audio sampled by a microphone.
   rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
   // Publish the local audio track to the channel.
@@ -101,50 +103,64 @@ async function publishTracks() {
 }
 
 function startListening() {
-  rtc.client.on("user-published", async (user, mediaType) => {
+  const { client } = rtc;
+  if (!client) {
+    throw new Error("Client must be ready");
+  }
+
+  client.on("user-published", async (user, mediaType) => {
     participants.add(user);
     renderParticipants();
 
     // Subscribe to a remote user.
-    await rtc.client.subscribe(user, mediaType);
+    await client.subscribe(user, mediaType);
 
     // If the subscribed track is audio.
     if (mediaType === "audio") {
       // Get `RemoteAudioTrack` in the `user` object.
       const remoteAudioTrack = user.audioTrack;
+      if (!remoteAudioTrack) {
+        throw new Error("remoteAudioTrack must be ready");
+      }
+
       // Play the audio track. No need to pass any DOM element.
       remoteAudioTrack.play();
     }
   });
 
-  rtc.client.on("user-unpublished", (user) => {
+  client.on("user-unpublished", (user) => {
     participants.delete(user);
     renderParticipants();
 
     // Get the dynamically created DIV container.
+    // (I didn't find what this DIV is in the document)
     const playerContainer = document.getElementById(String(user.uid));
-    // Destroy the container.
-    playerContainer.remove();
+    if (playerContainer) {
+      // Destroy the container.
+      playerContainer.remove();
+    }
   });
 }
 
 async function leaveCall() {
+  const { client } = rtc;
+  if (!client) {
+    throw new Error("Client must be ready");
+  }
+
   if (rtc.localAudioTrack) {
     // Destroy the local audio and track.
     rtc.localAudioTrack.close();
   }
 
   // Leave the channel.
-  await rtc.client.leave();
+  await client.leave();
 }
 
 function renderButtons() {
-  /** @type {HTMLButtonElement} */
-  const elJoin = document.querySelector("#join");
-  /** @type {HTMLButtonElement} */
-  const elPublish = document.querySelector("#publish");
-  /** @type {HTMLButtonElement} */
-  const elLeave = document.querySelector("#leave");
+  const elJoin = querySelector("#join", HTMLButtonElement);
+  const elPublish = querySelector("#publish", HTMLButtonElement);
+  const elLeave = querySelector("#leave", HTMLButtonElement);
 
   if (joined) {
     elJoin.disabled = true;
@@ -158,10 +174,10 @@ function renderButtons() {
 }
 
 /**
- * @param {UID} uid
+ * @param {UID | null} uid
  */
 function renderUserId(uid) {
-  querySelector("#userId", Element).textContent = String(uid) || "-";
+  querySelector("#userId", Element).textContent = uid ? String(uid) : "-";
 }
 
 function renderParticipants() {
@@ -180,6 +196,7 @@ function renderParticipants() {
 }
 
 /**
+ * Strict version of `el.querySelector()`.
  * @template {Element} T
  * @param {string} query
  * @param {new() => T} Constructor
