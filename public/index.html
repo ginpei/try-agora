@@ -8,8 +8,21 @@
 </head>
 <body>
   <div class="ui-container">
-    <h1>Hello World!</h1>
+    <h1>Agora</h1>
+    <ul>
+      <li><a href="https://console.agora.io/">https://console.agora.io/</a></li>
+      <li><a href="https://docs.agora.io/en/Voice/start_call_audio_web_ng?platform=Web">Agora Voice Call Overview</a></li>
+    </ul>
+    <p>
+      <button id="join">Join</button>
+      <button id="publish">Publish (start speaking)</button>
+      <button id="leave">Leave</button>
+    </p>
+    <p>Your ID: <span id="userId"></span></p>
+    <p>Participants (<span id="numOfParticipants">0</span>):</p>
+    <ul id="participantList"></ul>
   </div>
-  <script src="scripts.js"></script>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.3.0.js"></script>
+  <script src="main.js" type="module"></script>
 </body>
 </html>

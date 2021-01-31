@@ -4,6 +4,6 @@
 module.exports = {
   extends: "./node_modules/@ginpei/eslintrc/.eslintrc.js",
   rules: {
-    // your rules here
+    "import/extensions": ["error", "always"],
   },
 };
