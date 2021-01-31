@@ -24,36 +24,25 @@ import {
 // eslint-disable-next-line prefer-destructuring
 const AgoraRTC = window.AgoraRTC;
 
-const rtc = {
+// ----------------------------------------------------------------
+
+const state = {
   /**
    * For the local client.
    * @type {IAgoraRTCClient | null}
    */
   client: null,
 
+  /** @type {UID | null} */
+  currentUserId: null,
+
+  joined: false,
+
   /**
    * For the local audio track.
    * @type {IMicrophoneAudioTrack | null}
    */
   localAudioTrack: null,
-};
-
-const options = {
-  // Pass your app ID here.
-  appId,
-  // Set the channel name.
-  channel,
-  // Pass a token if your project enables the App Certificate.
-  token,
-};
-
-// ----------------------------------------------------------------
-
-const state = {
-  /** @type {UID | null} */
-  currentUserId: null,
-
-  joined: false,
 
   /** @type {Set<IAgoraRTCRemoteUser>} */
   participants: new Set(),
@@ -67,7 +56,7 @@ main();
 
 function main() {
   const client = createLocalClient();
-  rtc.client = client;
+  state.client = client;
 
   renderButtons(state);
   renderUserId(state);
@@ -148,47 +137,42 @@ function createLocalClient() {
 }
 
 async function joinChannel() {
-  if (!rtc.client) {
+  if (!state.client) {
     throw new Error("Client must be ready");
   }
 
-  const uid = await rtc.client.join(
-    options.appId,
-    options.channel,
-    options.token,
-    null
-  );
+  const uid = await state.client.join(appId, channel, token, null);
   return uid;
 }
 
 async function publishTracks() {
-  if (!rtc.client) {
+  if (!state.client) {
     throw new Error("Client must be ready");
   }
 
   // Create an audio track from the audio sampled by a microphone.
-  rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+  state.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
   // Publish the local audio track to the channel.
-  await rtc.client.publish([rtc.localAudioTrack]);
+  await state.client.publish([state.localAudioTrack]);
 }
 
 async function unpublishTracks() {
-  if (!rtc.client) {
+  if (!state.client) {
     throw new Error("Client must be ready");
   }
 
-  await rtc.client.unpublish();
+  await state.client.unpublish();
 }
 
 async function leaveCall() {
-  const { client } = rtc;
+  const { client } = state;
   if (!client) {
     throw new Error("Client must be ready");
   }
 
-  if (rtc.localAudioTrack) {
+  if (state.localAudioTrack) {
     // Destroy the local audio and track.
-    rtc.localAudioTrack.close();
+    state.localAudioTrack.close();
   }
 
   // Leave the channel.
