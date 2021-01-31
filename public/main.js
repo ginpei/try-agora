@@ -39,11 +39,12 @@ const options = {
 
 // ----------------------------------------------------------------
 
-/** @type {Set<IAgoraRTCRemoteUser>} */
-const participants = new Set();
-
-let joined = false;
-let published = false;
+const state = {
+  /** @type {Set<IAgoraRTCRemoteUser>} */
+  participants: new Set(),
+  joined: false,
+  published: false,
+};
 
 main();
 
@@ -59,27 +60,27 @@ function main() {
   querySelector("#join", HTMLButtonElement).onclick = async () => {
     const uid = await joinChannel();
     renderUserId(uid);
-    joined = true;
+    state.joined = true;
     renderButtons();
   };
 
   querySelector("#publish", HTMLButtonElement).onclick = async () => {
     await publishTracks();
-    published = true;
+    state.published = true;
     renderButtons();
   };
 
   querySelector("#unpublish", HTMLButtonElement).onclick = async () => {
     await unpublishTracks();
-    published = false;
+    state.published = false;
     renderButtons();
   };
 
   querySelector("#leave", HTMLButtonElement).onclick = async () => {
     await leaveCall();
     renderUserId(null);
-    joined = false;
-    published = false;
+    state.joined = false;
+    state.published = false;
     renderButtons();
   };
 }
@@ -128,7 +129,7 @@ function startListening() {
   }
 
   client.on("user-published", async (user, mediaType) => {
-    participants.add(user);
+    state.participants.add(user);
     renderParticipants();
 
     // Subscribe to a remote user.
@@ -148,7 +149,7 @@ function startListening() {
   });
 
   client.on("user-unpublished", (user) => {
-    participants.delete(user);
+    state.participants.delete(user);
     renderParticipants();
 
     // Get the dynamically created DIV container.
@@ -177,6 +178,7 @@ async function leaveCall() {
 }
 
 function renderButtons() {
+  const { joined, published } = state;
   querySelector("#join", HTMLButtonElement).disabled = joined;
   querySelector("#publish", HTMLButtonElement).disabled = !joined || published;
   querySelector("#unpublish", HTMLButtonElement).disabled =
@@ -193,13 +195,13 @@ function renderUserId(uid) {
 
 function renderParticipants() {
   const elNumber = querySelector("#numOfParticipants", Element);
-  elNumber.textContent = String(participants.size);
+  elNumber.textContent = String(state.participants.size);
 
   const elList = querySelector("#participantList", Element);
   elList.innerHTML = "";
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const user of participants) {
+  for (const user of state.participants) {
     const el = document.createElement("LI");
     el.textContent = String(user.uid);
     elList.appendChild(el);
