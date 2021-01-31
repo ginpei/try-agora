@@ -1,3 +1,5 @@
+// @ts-check
+
 import { appId, channel, token } from "./secrets.js";
 
 /**
@@ -8,9 +10,12 @@ import { appId, channel, token } from "./secrets.js";
  * @typedef {import("agora-rtc-sdk-ng").IAgoraRTCClient} IAgoraRTCClient
  * @typedef {import("agora-rtc-sdk-ng").IMicrophoneAudioTrack} IMicrophoneAudioTrack
  * @typedef {import("agora-rtc-sdk-ng").IAgoraRTCRemoteUser} IAgoraRTCRemoteUser
+ * @typedef {import("agora-rtc-sdk-ng").UID} UID
  */
 
 /** @type {AgoraRTC} */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 // eslint-disable-next-line prefer-destructuring
 const AgoraRTC = window.AgoraRTC;
 
@@ -52,21 +57,21 @@ function main() {
   createLocalClient();
   startListening();
   renderButtons();
-  renderUserId();
+  renderUserId(null);
   renderParticipants();
 
-  document.querySelector("#join").onclick = async () => {
+  querySelector("#join", HTMLButtonElement).onclick = async () => {
     const uid = await joinChannel();
     renderUserId(uid);
     joined = true;
     renderButtons();
   };
 
-  document.querySelector("#publish").onclick = async () => {
+  querySelector("#publish", HTMLButtonElement).onclick = async () => {
     await publishTracks();
   };
 
-  document.querySelector("#leave").onclick = async () => {
+  querySelector("#leave", HTMLButtonElement).onclick = async () => {
     await leaveCall();
     joined = false;
     renderButtons();
@@ -120,7 +125,7 @@ function startListening() {
     renderParticipants();
 
     // Get the dynamically created DIV container.
-    const playerContainer = document.getElementById(user.uid);
+    const playerContainer = document.getElementById(String(user.uid));
     // Destroy the container.
     playerContainer.remove();
   });
@@ -156,23 +161,43 @@ function renderButtons() {
 }
 
 /**
- * @param {string} userId
+ * @param {UID} uid
  */
-function renderUserId(userId) {
-  document.querySelector("#userId").textContent = userId || "-";
+function renderUserId(uid) {
+  querySelector("#userId", Element).textContent = String(uid) || "-";
 }
 
 function renderParticipants() {
-  const elNumber = document.querySelector("#numOfParticipants");
-  elNumber.textContent = participants.size;
+  const elNumber = querySelector("#numOfParticipants", Element);
+  elNumber.textContent = String(participants.size);
 
-  const elList = document.querySelector("#participantList");
+  const elList = querySelector("#participantList", Element);
   elList.innerHTML = "";
 
   // eslint-disable-next-line no-restricted-syntax
   for (const user of participants) {
     const el = document.createElement("LI");
-    el.textContent = user.uid;
+    el.textContent = String(user.uid);
     elList.appendChild(el);
   }
+}
+
+/**
+ * @template {Element} T
+ * @param {string} query
+ * @param {new() => T} Constructor
+ * @param {Document | Element} from
+ * @returns {T}
+ */
+function querySelector(query, Constructor, from = document) {
+  const target = from.querySelector(query);
+  if (!target) {
+    throw new Error(`Query "${query}" not found`);
+  }
+
+  if (!(target instanceof Constructor)) {
+    throw new Error(`"${query}" is not ${Constructor.name}`);
+  }
+
+  return target;
 }
