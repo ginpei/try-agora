@@ -3,14 +3,11 @@
 import { appId, channel, token } from "./secrets.js";
 
 /**
- * @typedef {import("agora-rtc-sdk-ng")["default"]} AgoraRTC
- */
-
-/**
  * @typedef {import("agora-rtc-sdk-ng").IAgoraRTCClient} IAgoraRTCClient
- * @typedef {import("agora-rtc-sdk-ng").IMicrophoneAudioTrack} IMicrophoneAudioTrack
  * @typedef {import("agora-rtc-sdk-ng").IAgoraRTCRemoteUser} IAgoraRTCRemoteUser
+ * @typedef {import("agora-rtc-sdk-ng").IMicrophoneAudioTrack} IMicrophoneAudioTrack
  * @typedef {import("agora-rtc-sdk-ng").UID} UID
+ * @typedef {import("agora-rtc-sdk-ng")["default"]} AgoraRTC
  */
 
 /** @type {AgoraRTC} */
