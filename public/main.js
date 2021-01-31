@@ -1,4 +1,10 @@
 import { appId, channel, token } from "./secrets.js";
+import {
+  querySelector,
+  renderButtons,
+  renderParticipants,
+  renderUserId,
+} from "./modules/ui.js";
 
 /**
  * @typedef {import("agora-rtc-sdk-ng").IAgoraRTCClient} IAgoraRTCClient
@@ -6,6 +12,10 @@ import { appId, channel, token } from "./secrets.js";
  * @typedef {import("agora-rtc-sdk-ng").IMicrophoneAudioTrack} IMicrophoneAudioTrack
  * @typedef {import("agora-rtc-sdk-ng").UID} UID
  * @typedef {import("agora-rtc-sdk-ng")["default"]} AgoraRTC
+ */
+
+/**
+ * @typedef {typeof state} AppState
  */
 
 /** @type {AgoraRTC} */
@@ -59,31 +69,31 @@ function main() {
   createLocalClient();
   startListening();
 
-  renderButtons();
-  renderUserId();
-  renderParticipants();
+  renderButtons(state);
+  renderUserId(state);
+  renderParticipants(state);
 
   querySelector("#join", HTMLButtonElement).onclick = async () => {
     const uid = await joinChannel();
 
     state.currentUserId = uid;
     state.joined = true;
-    renderButtons();
-    renderUserId();
+    renderButtons(state);
+    renderUserId(state);
   };
 
   querySelector("#publish", HTMLButtonElement).onclick = async () => {
     await publishTracks();
 
     state.published = true;
-    renderButtons();
+    renderButtons(state);
   };
 
   querySelector("#unpublish", HTMLButtonElement).onclick = async () => {
     await unpublishTracks();
 
     state.published = false;
-    renderButtons();
+    renderButtons(state);
   };
 
   querySelector("#leave", HTMLButtonElement).onclick = async () => {
@@ -93,9 +103,9 @@ function main() {
     state.joined = false;
     state.participants.clear();
     state.published = false;
-    renderButtons();
-    renderUserId();
-    renderParticipants();
+    renderButtons(state);
+    renderUserId(state);
+    renderParticipants(state);
   };
 }
 
@@ -144,7 +154,7 @@ function startListening() {
 
   client.on("user-published", async (user, mediaType) => {
     state.participants.add(user);
-    renderParticipants();
+    renderParticipants(state);
 
     // Subscribe to a remote user.
     await client.subscribe(user, mediaType);
@@ -164,7 +174,7 @@ function startListening() {
 
   client.on("user-unpublished", (user) => {
     state.participants.delete(user);
-    renderParticipants();
+    renderParticipants(state);
 
     // Get the dynamically created DIV container.
     // (I didn't find what this DIV is in the document)
@@ -189,54 +199,4 @@ async function leaveCall() {
 
   // Leave the channel.
   await client.leave();
-}
-
-function renderButtons() {
-  const { joined, published } = state;
-  querySelector("#join", HTMLButtonElement).disabled = joined;
-  querySelector("#publish", HTMLButtonElement).disabled = !joined || published;
-  querySelector("#unpublish", HTMLButtonElement).disabled =
-    !joined || !published;
-  querySelector("#leave", HTMLButtonElement).disabled = !joined;
-}
-
-function renderUserId() {
-  const uid = state.currentUserId;
-  querySelector("#userId", Element).textContent = uid ? String(uid) : "-";
-}
-
-function renderParticipants() {
-  const elNumber = querySelector("#numOfParticipants", Element);
-  elNumber.textContent = String(state.participants.size);
-
-  const elList = querySelector("#participantList", Element);
-  elList.innerHTML = "";
-
-  // eslint-disable-next-line no-restricted-syntax
-  for (const user of state.participants) {
-    const el = document.createElement("LI");
-    el.textContent = String(user.uid);
-    elList.appendChild(el);
-  }
-}
-
-/**
- * Strict version of `el.querySelector()`.
- * @template {Element} T
- * @param {string} query
- * @param {new() => T} Constructor
- * @param {Document | Element} from
- * @returns {T}
- */
-function querySelector(query, Constructor, from = document) {
-  const target = from.querySelector(query);
-  if (!target) {
-    throw new Error(`Query "${query}" not found`);
-  }
-
-  if (!(target instanceof Constructor)) {
-    throw new Error(`"${query}" is not ${Constructor.name}`);
-  }
-
-  return target;
 }
