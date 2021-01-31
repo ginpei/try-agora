@@ -27,6 +27,41 @@ Demo of Agora Voice Call.
 
 Please make sure you share HTTPS one. Agora does not work over HTTP protocol.
 
+## Trouble shooting
+
+### Errors on load
+
+> AgoraRTCError NOT_SUPPORTED: enumerateDevices() not supported.
+
+> AgoraRTCError WEB_SECURITY_RESTRICT: Your context is limited by web security, please try using https protocol or localhost.
+
+> AgoraRTCError WEB_SECURITY_RESTRICT: Your context is limited by web security, please try using https protocol or localhost.
+
+→ Run on `localhost`, or on `https://`.
+
+### Error on join
+
+> AgoraRTCError INVALID_PARAMS: Invalid token: . If you don not use token, set it to null
+
+> Joining channel failed
+> CAN_NOT_GET_GATEWAY_SERVER: dynamic use static key
+
+→ Set `token`. Document says it's an option, but you need it.
+
+### Error on publish
+
+> AgoraRTCError INVALID_OPERATION: Can't publish stream, haven't joined yet!
+
+→ Invoke `rtc.client.join()`.
+
+### Error on somebody's leave
+
+> TypeError: Cannot read property 'remove' of null
+
+→ Check if the element exists.
+
+The document describe to delete element which is the result of `document.getElementById(user.uid)`, but I didn't find where the element is created.
+
 ## More details
 
 - Agora official: [Start a Voice Call](https://docs.agora.io/en/Voice/start_call_audio_web_ng?platform=Web)
