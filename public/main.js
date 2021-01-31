@@ -42,6 +42,8 @@ const options = {
 /** @type {Set<IAgoraRTCRemoteUser>} */
 const participants = new Set();
 
+let joined = false;
+
 main();
 
 // ----------------------------------------------------------------
@@ -49,12 +51,15 @@ main();
 function main() {
   createLocalClient();
   startListening();
+  renderButtons();
   renderUserId();
   renderParticipants();
 
   document.querySelector("#join").onclick = async () => {
     const uid = await joinChannel();
     renderUserId(uid);
+    joined = true;
+    renderButtons();
   };
 
   document.querySelector("#publish").onclick = async () => {
@@ -63,6 +68,8 @@ function main() {
 
   document.querySelector("#leave").onclick = async () => {
     await leaveCall();
+    joined = false;
+    renderButtons();
   };
 }
 
@@ -120,11 +127,32 @@ function startListening() {
 }
 
 async function leaveCall() {
-  // Destroy the local audio and track.
-  rtc.localAudioTrack.close();
+  if (rtc.localAudioTrack) {
+    // Destroy the local audio and track.
+    rtc.localAudioTrack.close();
+  }
 
   // Leave the channel.
   await rtc.client.leave();
+}
+
+function renderButtons() {
+  /** @type {HTMLButtonElement} */
+  const elJoin = document.querySelector("#join");
+  /** @type {HTMLButtonElement} */
+  const elPublish = document.querySelector("#publish");
+  /** @type {HTMLButtonElement} */
+  const elLeave = document.querySelector("#leave");
+
+  if (joined) {
+    elJoin.disabled = true;
+    elPublish.disabled = false;
+    elLeave.disabled = false;
+  } else {
+    elJoin.disabled = false;
+    elPublish.disabled = true;
+    elLeave.disabled = true;
+  }
 }
 
 /**
