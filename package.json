@@ -2,7 +2,9 @@
   "private": true,
   "scripts": {
     "lint": "eslint . && tsc",
-    "start": "browser-sync start --watch --no-ui --no-ghost-mode --server public"
+    "serve:local": "browser-sync start --watch --no-ui --no-ghost-mode --server public",
+    "serve:proxy": "ngrok http 3000",
+    "start": "npm run serve:local"
   },
   "devDependencies": {
     "@ginpei/eslintrc": "^1.0.0",
@@ -14,6 +16,7 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.3.0",
     "git-cz": "^4.7.6",
+    "ngrok": "^3.4.0",
     "prettier": "^2.2.1"
   }
 }
