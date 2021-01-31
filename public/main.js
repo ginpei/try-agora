@@ -158,19 +158,9 @@ async function leaveCall() {
 }
 
 function renderButtons() {
-  const elJoin = querySelector("#join", HTMLButtonElement);
-  const elPublish = querySelector("#publish", HTMLButtonElement);
-  const elLeave = querySelector("#leave", HTMLButtonElement);
-
-  if (joined) {
-    elJoin.disabled = true;
-    elPublish.disabled = false;
-    elLeave.disabled = false;
-  } else {
-    elJoin.disabled = false;
-    elPublish.disabled = true;
-    elLeave.disabled = true;
-  }
+  querySelector("#join", HTMLButtonElement).disabled = joined;
+  querySelector("#publish", HTMLButtonElement).disabled = !joined;
+  querySelector("#leave", HTMLButtonElement).disabled = !joined;
 }
 
 /**
