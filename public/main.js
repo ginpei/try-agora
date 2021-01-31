@@ -48,12 +48,13 @@ main();
 
 function main() {
   createLocalClient();
-
   startListening();
+  renderUserId();
+  renderParticipants();
 
   document.querySelector("#join").onclick = async () => {
     const uid = await joinChannel();
-    showUserId(uid);
+    renderUserId(uid);
   };
 
   document.querySelector("#publish").onclick = async () => {
@@ -93,7 +94,7 @@ async function publishTracks() {
 function startListening() {
   rtc.client.on("user-published", async (user, mediaType) => {
     participants.add(user);
-    showParticipants();
+    renderParticipants();
 
     // Subscribe to a remote user.
     await rtc.client.subscribe(user, mediaType);
@@ -109,7 +110,7 @@ function startListening() {
 
   rtc.client.on("user-unpublished", (user) => {
     participants.delete(user);
-    showParticipants();
+    renderParticipants();
 
     // Get the dynamically created DIV container.
     const playerContainer = document.getElementById(user.uid);
@@ -129,11 +130,11 @@ async function leaveCall() {
 /**
  * @param {string} userId
  */
-function showUserId(userId) {
-  document.querySelector("#userId").textContent = userId;
+function renderUserId(userId) {
+  document.querySelector("#userId").textContent = userId || "-";
 }
 
-function showParticipants() {
+function renderParticipants() {
   const elNumber = document.querySelector("#numOfParticipants");
   elNumber.textContent = participants.size;
 
