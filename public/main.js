@@ -86,9 +86,11 @@ function main() {
     await leaveCall();
     state.currentUserId = null;
     state.joined = false;
+    state.participants.clear();
     state.published = false;
     renderUserId();
     renderButtons();
+    renderParticipants();
   };
 }
 
