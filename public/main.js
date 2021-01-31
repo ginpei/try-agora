@@ -66,12 +66,45 @@ main();
 // ----------------------------------------------------------------
 
 function main() {
-  createLocalClient();
-  startListening();
+  const client = createLocalClient();
+  rtc.client = client;
 
   renderButtons(state);
   renderUserId(state);
   renderParticipants(state);
+
+  client.on("user-published", async (user, mediaType) => {
+    state.participants.add(user);
+    renderParticipants(state);
+
+    // Subscribe to a remote user.
+    await client.subscribe(user, mediaType);
+
+    // If the subscribed track is audio.
+    if (mediaType === "audio") {
+      // Get `RemoteAudioTrack` in the `user` object.
+      const remoteAudioTrack = user.audioTrack;
+      if (!remoteAudioTrack) {
+        throw new Error("remoteAudioTrack must be ready");
+      }
+
+      // Play the audio track. No need to pass any DOM element.
+      remoteAudioTrack.play();
+    }
+  });
+
+  client.on("user-unpublished", (user) => {
+    state.participants.delete(user);
+    renderParticipants(state);
+
+    // Get the dynamically created DIV container.
+    // (I didn't find what this DIV is in the document)
+    const playerContainer = document.getElementById(String(user.uid));
+    if (playerContainer) {
+      // Destroy the container.
+      playerContainer.remove();
+    }
+  });
 
   querySelector("#join", HTMLButtonElement).onclick = async () => {
     const uid = await joinChannel();
@@ -110,7 +143,8 @@ function main() {
 }
 
 function createLocalClient() {
-  rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+  const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+  return client;
 }
 
 async function joinChannel() {
@@ -144,46 +178,6 @@ async function unpublishTracks() {
   }
 
   await rtc.client.unpublish();
-}
-
-function startListening() {
-  const { client } = rtc;
-  if (!client) {
-    throw new Error("Client must be ready");
-  }
-
-  client.on("user-published", async (user, mediaType) => {
-    state.participants.add(user);
-    renderParticipants(state);
-
-    // Subscribe to a remote user.
-    await client.subscribe(user, mediaType);
-
-    // If the subscribed track is audio.
-    if (mediaType === "audio") {
-      // Get `RemoteAudioTrack` in the `user` object.
-      const remoteAudioTrack = user.audioTrack;
-      if (!remoteAudioTrack) {
-        throw new Error("remoteAudioTrack must be ready");
-      }
-
-      // Play the audio track. No need to pass any DOM element.
-      remoteAudioTrack.play();
-    }
-  });
-
-  client.on("user-unpublished", (user) => {
-    state.participants.delete(user);
-    renderParticipants(state);
-
-    // Get the dynamically created DIV container.
-    // (I didn't find what this DIV is in the document)
-    const playerContainer = document.getElementById(String(user.uid));
-    if (playerContainer) {
-      // Destroy the container.
-      playerContainer.remove();
-    }
-  });
 }
 
 async function leaveCall() {
