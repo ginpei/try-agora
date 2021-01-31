@@ -58,38 +58,43 @@ main();
 function main() {
   createLocalClient();
   startListening();
+
   renderButtons();
   renderUserId();
   renderParticipants();
 
   querySelector("#join", HTMLButtonElement).onclick = async () => {
     const uid = await joinChannel();
+
     state.currentUserId = uid;
     state.joined = true;
-    renderUserId();
     renderButtons();
+    renderUserId();
   };
 
   querySelector("#publish", HTMLButtonElement).onclick = async () => {
     await publishTracks();
+
     state.published = true;
     renderButtons();
   };
 
   querySelector("#unpublish", HTMLButtonElement).onclick = async () => {
     await unpublishTracks();
+
     state.published = false;
     renderButtons();
   };
 
   querySelector("#leave", HTMLButtonElement).onclick = async () => {
     await leaveCall();
+
     state.currentUserId = null;
     state.joined = false;
     state.participants.clear();
     state.published = false;
-    renderUserId();
     renderButtons();
+    renderUserId();
     renderParticipants();
   };
 }
