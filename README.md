@@ -1,5 +1,9 @@
 # Try Agora
 
+Demo of Agora Voice Call.
+
+![screenshot](docs/screenshot.png)
+
 ## Agora?
 
 - [Agora.io Real-Time Voice and Video Engagement - Agora.io](https://www.agora.io/en/)
