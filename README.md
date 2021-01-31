@@ -21,7 +21,7 @@ Demo of Agora Voice Call.
 ## Try with friends
 
 1. `npm run start`
-2. Open another terminal (probably `Ctrl+T`)
+2. Open another terminal (most likely `Ctrl+T`)
 3. `npm run serve:proxy`
 4. Share HTTPS URL
 
