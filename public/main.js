@@ -77,6 +77,7 @@ function main() {
 
   querySelector("#leave", HTMLButtonElement).onclick = async () => {
     await leaveCall();
+    renderUserId(null);
     joined = false;
     published = false;
     renderButtons();
