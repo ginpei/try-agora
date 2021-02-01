@@ -69,9 +69,9 @@ function main() {
   renderParticipants(state);
 
   querySelector("#join", HTMLButtonElement).onclick = onJoinClick;
+  querySelector("#leave", HTMLButtonElement).onclick = onLeaveClick;
   querySelector("#publish", HTMLButtonElement).onclick = onPublishClick;
   querySelector("#unpublish", HTMLButtonElement).onclick = onUnpublishClick;
-  querySelector("#leave", HTMLButtonElement).onclick = onLeaveClick;
 
   client.on("user-joined", onAgoraUserJoined);
   client.on("user-left", onAgoraUserLeft);
@@ -90,6 +90,29 @@ async function onJoinClick() {
   state.joined = true;
   renderButtons(state);
   renderUserId(state);
+}
+
+async function onLeaveClick() {
+  if (!state.client) {
+    throw new Error("Client must be ready");
+  }
+
+  if (state.localAudioTrack) {
+    // Destroy the local audio and track.
+    state.localAudioTrack.close();
+  }
+
+  // Leave the channel.
+  await state.client.leave();
+
+  state.currentUserId = null;
+  state.joined = false;
+  state.localAudioTrack = null;
+  state.participants.clear();
+  state.published = false;
+  renderButtons(state);
+  renderUserId(state);
+  renderParticipants(state);
 }
 
 async function onPublishClick() {
@@ -116,29 +139,6 @@ async function onUnpublishClick() {
 
   state.published = false;
   renderButtons(state);
-}
-
-async function onLeaveClick() {
-  if (!state.client) {
-    throw new Error("Client must be ready");
-  }
-
-  if (state.localAudioTrack) {
-    // Destroy the local audio and track.
-    state.localAudioTrack.close();
-  }
-
-  // Leave the channel.
-  await state.client.leave();
-
-  state.currentUserId = null;
-  state.joined = false;
-  state.localAudioTrack = null;
-  state.participants.clear();
-  state.published = false;
-  renderButtons(state);
-  renderUserId(state);
-  renderParticipants(state);
 }
 
 /**
