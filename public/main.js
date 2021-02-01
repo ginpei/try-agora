@@ -68,18 +68,18 @@ function main() {
   renderUserId(state);
   renderParticipants(state);
 
+  querySelector("#join", HTMLButtonElement).onclick = () => onJoinClick();
+  querySelector("#publish", HTMLButtonElement).onclick = () => onPublishClick();
+  querySelector("#unpublish", HTMLButtonElement).onclick = () =>
+    onUnpublishClick();
+  querySelector("#leave", HTMLButtonElement).onclick = () => onLeaveClick();
+
   client.on("user-joined", (user) => onAgoraUserJoined(user));
   client.on("user-left", (user) => onAgoraUserLeft(user));
   client.on("user-published", (user, mediaType) =>
     onAgoraUserPublished(user, mediaType)
   );
   client.on("user-unpublished", (user) => onAgoraUserUnpublished(user));
-
-  querySelector("#join", HTMLButtonElement).onclick = () => onJoinClick();
-  querySelector("#publish", HTMLButtonElement).onclick = () => onPublishClick();
-  querySelector("#unpublish", HTMLButtonElement).onclick = () =>
-    onUnpublishClick();
-  querySelector("#leave", HTMLButtonElement).onclick = () => onLeaveClick();
 }
 
 async function onJoinClick() {
