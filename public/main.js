@@ -48,6 +48,9 @@ const state = {
   participants: new Set(),
 
   published: false,
+
+  /** @type {Set<IAgoraRTCRemoteUser>} */
+  speakers: new Set(),
 };
 
 main();
@@ -65,8 +68,18 @@ function main() {
   renderUserId(state);
   renderParticipants(state);
 
-  client.on("user-published", async (user, mediaType) => {
+  client.on("user-joined", async (user) => {
     state.participants.add(user);
+    renderParticipants(state);
+  });
+
+  client.on("user-left", async (user) => {
+    state.participants.delete(user);
+    renderParticipants(state);
+  });
+
+  client.on("user-published", async (user, mediaType) => {
+    state.speakers.add(user);
     renderParticipants(state);
 
     // Subscribe to a remote user.
@@ -86,7 +99,7 @@ function main() {
   });
 
   client.on("user-unpublished", (user) => {
-    state.participants.delete(user);
+    state.speakers.delete(user);
     renderParticipants(state);
 
     // Get the dynamically created DIV container.

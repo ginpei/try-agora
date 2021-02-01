@@ -35,7 +35,7 @@ export function renderParticipants(state) {
   // eslint-disable-next-line no-restricted-syntax
   for (const user of state.participants) {
     const el = document.createElement("LI");
-    el.textContent = String(user.uid);
+    el.textContent = `${user.uid}${state.speakers.has(user) ? " 🔊" : ""}`;
     elList.appendChild(el);
   }
 }
