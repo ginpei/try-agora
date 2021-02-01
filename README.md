@@ -80,4 +80,4 @@ Or follow the document: [Generate a Token](https://docs.agora.io/en/Voice/token_
 
 → Check if the element exists.
 
-The document describe to delete element which is the result of `document.getElementById(user.uid)`, but I didn't find where the element is created.
+The document describes to delete an element which is the result of `document.getElementById(user.uid)`, but I didn't find where the element is created.
