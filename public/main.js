@@ -54,6 +54,9 @@ main();
 
 // ----------------------------------------------------------------
 
+/**
+ * Entry point.
+ */
 function main() {
   const client = createLocalClient();
   state.client = client;
