@@ -68,102 +68,40 @@ function main() {
   renderUserId(state);
   renderParticipants(state);
 
-  client.on("user-joined", async (user) => {
-    state.participants.add(user);
-    renderParticipants(state);
-  });
+  client.on("user-joined", (user) => onAgoraUserJoined(user));
 
-  client.on("user-left", async (user) => {
-    state.participants.delete(user);
-    renderParticipants(state);
-  });
+  client.on("user-left", (user) => onAgoraUserLeft(user));
 
-  client.on("user-published", async (user, mediaType) => {
-    state.speakers.add(user);
-    renderParticipants(state);
+  client.on("user-published", (user, mediaType) =>
+    onAgoraUserPublished(user, mediaType)
+  );
 
-    // Subscribe to a remote user.
-    await client.subscribe(user, mediaType);
+  client.on("user-unpublished", (user) => onAgoraUserUnpublished(user));
 
-    // If the subscribed track is audio.
-    if (mediaType === "audio") {
-      // Get `RemoteAudioTrack` in the `user` object.
-      const remoteAudioTrack = user.audioTrack;
-      if (!remoteAudioTrack) {
-        throw new Error("remoteAudioTrack must be ready");
-      }
+  querySelector("#join", HTMLButtonElement).onclick = () => onJoinClick();
 
-      // Play the audio track. No need to pass any DOM element.
-      remoteAudioTrack.play();
-    }
-  });
+  querySelector("#publish", HTMLButtonElement).onclick = () => onPublishClick();
 
-  client.on("user-unpublished", (user) => {
-    state.speakers.delete(user);
-    renderParticipants(state);
+  querySelector("#unpublish", HTMLButtonElement).onclick = () =>
+    onUnpublishClick();
 
-    // Get the dynamically created DIV container.
-    // (I didn't find what this DIV is in the document)
-    const playerContainer = document.getElementById(String(user.uid));
-    if (playerContainer) {
-      // Destroy the container.
-      playerContainer.remove();
-    }
-  });
-
-  querySelector("#join", HTMLButtonElement).onclick = async () => {
-    const uid = await joinChannel();
-
-    state.currentUserId = uid;
-    state.joined = true;
-    renderButtons(state);
-    renderUserId(state);
-  };
-
-  querySelector("#publish", HTMLButtonElement).onclick = async () => {
-    const localAudioTrack = await publishTracks();
-
-    state.localAudioTrack = localAudioTrack;
-    state.published = true;
-    renderButtons(state);
-  };
-
-  querySelector("#unpublish", HTMLButtonElement).onclick = async () => {
-    await unpublishTracks();
-
-    state.published = false;
-    renderButtons(state);
-  };
-
-  querySelector("#leave", HTMLButtonElement).onclick = async () => {
-    await leaveCall();
-
-    state.currentUserId = null;
-    state.joined = false;
-    state.localAudioTrack = null;
-    state.participants.clear();
-    state.published = false;
-    renderButtons(state);
-    renderUserId(state);
-    renderParticipants(state);
-  };
+  querySelector("#leave", HTMLButtonElement).onclick = () => onLeaveClick();
 }
 
-function createLocalClient() {
-  const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-  return client;
-}
-
-async function joinChannel() {
+async function onJoinClick() {
   if (!state.client) {
     throw new Error("Client must be ready");
   }
 
   const uid = await state.client.join(appId, channel, token, null);
-  return uid;
+
+  state.currentUserId = uid;
+  state.joined = true;
+  renderButtons(state);
+  renderUserId(state);
 }
 
-async function publishTracks() {
+async function onPublishClick() {
   if (!state.client) {
     throw new Error("Client must be ready");
   }
@@ -173,20 +111,24 @@ async function publishTracks() {
   // Publish the local audio track to the channel.
   await state.client.publish([localAudioTrack]);
 
-  return localAudioTrack;
+  state.localAudioTrack = localAudioTrack;
+  state.published = true;
+  renderButtons(state);
 }
 
-async function unpublishTracks() {
+async function onUnpublishClick() {
   if (!state.client) {
     throw new Error("Client must be ready");
   }
 
   await state.client.unpublish();
+
+  state.published = false;
+  renderButtons(state);
 }
 
-async function leaveCall() {
-  const { client } = state;
-  if (!client) {
+async function onLeaveClick() {
+  if (!state.client) {
     throw new Error("Client must be ready");
   }
 
@@ -196,5 +138,79 @@ async function leaveCall() {
   }
 
   // Leave the channel.
-  await client.leave();
+  await state.client.leave();
+
+  state.currentUserId = null;
+  state.joined = false;
+  state.localAudioTrack = null;
+  state.participants.clear();
+  state.published = false;
+  renderButtons(state);
+  renderUserId(state);
+  renderParticipants(state);
+}
+
+/**
+ * @param {IAgoraRTCRemoteUser} user
+ */
+async function onAgoraUserJoined(user) {
+  state.participants.add(user);
+  renderParticipants(state);
+}
+
+/**
+ * @param {IAgoraRTCRemoteUser} user
+ */
+async function onAgoraUserLeft(user) {
+  state.participants.delete(user);
+  renderParticipants(state);
+}
+
+/**
+ * @param {IAgoraRTCRemoteUser} user
+ * @param {"audio" | "video"} mediaType
+ */
+async function onAgoraUserPublished(user, mediaType) {
+  if (!state.client) {
+    throw new Error("Client must be ready");
+  }
+
+  state.speakers.add(user);
+  renderParticipants(state);
+
+  // Subscribe to a remote user.
+  await state.client.subscribe(user, mediaType);
+
+  // If the subscribed track is audio.
+  if (mediaType === "audio") {
+    // Get `RemoteAudioTrack` in the `user` object.
+    const remoteAudioTrack = user.audioTrack;
+    if (!remoteAudioTrack) {
+      throw new Error("remoteAudioTrack must be ready");
+    }
+
+    // Play the audio track. No need to pass any DOM element.
+    remoteAudioTrack.play();
+  }
+}
+
+/**
+ * @param {IAgoraRTCRemoteUser} user
+ */
+async function onAgoraUserUnpublished(user) {
+  state.speakers.delete(user);
+  renderParticipants(state);
+
+  // Get the dynamically created DIV container.
+  // (I didn't find what this DIV is in the document)
+  const playerContainer = document.getElementById(String(user.uid));
+  if (playerContainer) {
+    // Destroy the container.
+    playerContainer.remove();
+  }
+}
+
+function createLocalClient() {
+  const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+  return client;
 }
