@@ -97,10 +97,8 @@ async function onLeaveClick() {
     throw new Error("Client must be ready");
   }
 
-  if (state.localAudioTrack) {
-    // Destroy the local audio and track.
-    state.localAudioTrack.close();
-  }
+  // Destroy the local audio and track.
+  state.client.localTracks.forEach((v) => v.close());
 
   // Leave the channel.
   await state.client.leave();
@@ -169,20 +167,8 @@ async function onAgoraUserPublished(user, mediaType) {
   state.speakers.add(user);
   renderParticipants(state);
 
-  // Subscribe to a remote user.
-  await state.client.subscribe(user, mediaType);
-
-  // If the subscribed track is audio.
-  if (mediaType === "audio") {
-    // Get `RemoteAudioTrack` in the `user` object.
-    const remoteAudioTrack = user.audioTrack;
-    if (!remoteAudioTrack) {
-      throw new Error("remoteAudioTrack must be ready");
-    }
-
-    // Play the audio track. No need to pass any DOM element.
-    remoteAudioTrack.play();
-  }
+  const remoteTrack = await state.client.subscribe(user, mediaType);
+  remoteTrack.play();
 }
 
 /**
