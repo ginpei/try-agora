@@ -46,23 +46,30 @@ Please make sure you share HTTPS URL. It does not work over HTTP protocol.
 
 > AgoraRTCError WEB_SECURITY_RESTRICT: Your context is limited by web security, please try using https protocol or localhost.
 
-→ Run on `localhost`, or on `https://`.
+→ Run on `localhost`, or on `https://`. This happens when it's on `http://`.
 
 ### Error on join
 
+> AgoraRTCException
+> AgoraRTCError CAN_NOT_GET_GATEWAY_SERVER: dynamic use static key
+
+→ Set `token`. Document says it's like optional, but you need it actually.
+
 > AgoraRTCError INVALID_PARAMS: Invalid token: . If you don not use token, set it to null
 
-→ Set `token`. Document says it's an option, but you need it.
+→ Set `token` in your `secrets.js`. It should be left empty.
 
 > Choose server https://webrtc2-ap-web-1.agora.io/api/v1 failed, message: AgoraRTCError CAN_NOT_GET_GATEWAY_SERVER: dynamic key expired, retry: false
 
-→ Renew `token`.
+→ Renew `token`. Expired. About 24 hours?
 
 > AgoraRTCError CAN_NOT_GET_GATEWAY_SERVER: invalid token, authorized failed
 
 → Make sure the `token` is generated with exactly your channel name
 
 ### How to get `token`?
+
+Here you go:
 
 - [Project Management](https://console.agora.io/projects) > Edit > Features > Generate temp token
 
